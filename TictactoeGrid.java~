@@ -1,0 +1,37 @@
+import java.awt.geom.Line2D;
+import java.awt.Graphics2D;
+
+public class TictactoeGrid
+{
+ private int dimensions; 
+ private XO[][] markedGrids; 
+ private int size;
+ private final int PUSH = 45;
+ public TictactoeGrid(int dimensions,XO[][] markedGrids)
+ {
+  this.markedGrids = markedGrids; 
+  this.dimensions = dimensions;
+  this.size = 400/(dimensions);
+ }
+ public void draw(Graphics2D g2)
+ {
+  for (int c = 0;c<dimensions+1;c++)
+  {
+   Line2D coloutline = new Line2D.Double(PUSH+c*size,PUSH-size/2,PUSH+c*size,(dimensions)*size+PUSH+size/2);
+   g2.draw(coloutline);
+  }
+  for(int r = 0;r<dimensions+1;r++)
+  {
+   Line2D rowoutline = new Line2D.Double(PUSH-size/2,PUSH+r*size,PUSH+(dimensions)*size+size/2,PUSH+r*size);
+   g2.draw(rowoutline);
+  }
+  for(int i = 0;i<dimensions;i++)
+  {
+   for(int x = 0; x<dimensions;x++) 
+   {
+    markedGrids[x][i].draw(g2);
+   }
+  }
+ }
+ 
+}

@@ -1,0 +1,124 @@
+import java.awt.GridLayout;
+import javax.swing.JPanel;
+import javax.swing.JFrame;
+import javax.swing.JTextArea;
+import javax.swing.JRadioButton;
+import javax.swing.JComboBox;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+
+public class TictactoePrompter extends JFrame
+{
+ private JPanel ppcp,gameamount,timelimit,usernames;
+ private JButton exit,startgame;
+ private JRadioButton pp,cp;
+ private boolean vscomp;
+ private JTextArea player1,player2;
+ private JComboBox<String> gamebox,timebox;
+ public TictactoePrompter()
+ {
+  //three prompts to ask: 
+  //1) player vs player or player vs comp(jradiobutton)
+  //2) how many games (jcombobox)
+  //3) time limit for each turn (jtextarea(?))
+  //4) usernames(jtextarea)(this is affected by the first prompt)
+   
+  //5 jpanels
+  //5th one is split in half and has the buttons exit and start game
+  this.setTitle("Tic tac toe Menu");
+  this.setSize(300,300);
+  
+  ButtonGroup group = new ButtonGroup();
+  pp = new JRadioButton("Player vs Player", true);
+  cp = new JRadioButton("Player vs Computer");
+  vscomp = false;
+  pp.addActionListener(new ButtonListener());
+  cp.addActionListener(new ButtonListener());
+  group.add(pp);
+  group.add(cp);
+  
+  String[] games = {"1","2","3","4","5","6","7","8","9","10"
+    ,"11","12","13","14","15","16","17","18","19","20"};
+  gamebox = new JComboBox<String>(games);
+  JLabel gamelabel = new JLabel("Please pick the amount of games you'd like to play");
+  
+                                
+  player1 = new JTextArea();
+  player2 = new JTextArea();
+
+  
+  ppcp = new JPanel();
+  gameamount = new JPanel();
+  usernames = new JPanel();
+  JPanel buttonpan = new JPanel();
+  JPanel fill = new JPanel();
+  JPanel fill2 = new JPanel();
+  JPanel userpan1 = new JPanel();
+  JPanel userpan2 = new JPanel();
+  userpan1.setLayout(new GridLayout(1,2));
+  userpan2.setLayout(new GridLayout(1,2));
+  usernames.setLayout(new GridLayout(2,1));
+  
+  exit = new JButton("Exit");
+  startgame = new JButton("Start Game");
+  exit.addActionListener(new ButtonListener());
+  startgame.addActionListener(new ButtonListener());
+ 
+  ppcp.add(pp);
+  ppcp.add(cp);
+  gameamount.add(gamelabel);
+  gameamount.add(gamebox);
+  userpan1.add(new JLabel("Username of Player 1"));
+  userpan1.add(player1);
+  userpan2.add(new JLabel("Username of Player 2"));
+  userpan2.add(player2);
+  usernames.add(userpan1);
+  usernames.add(userpan2);
+  
+  fill2.add(exit);
+  fill2.add(startgame);
+
+  buttonpan.add(fill);
+  buttonpan.add(fill2);
+  this.setLayout(new GridLayout(4,1));
+  this.add(ppcp);
+  this.add(gameamount);
+  this.add(usernames);
+  this.add(buttonpan);
+ }
+ class ButtonListener implements ActionListener
+ {
+  public void actionPerformed(ActionEvent ae)
+  {
+   if(ae.getSource() == exit)
+   {
+    System.exit(0); 
+   }
+   if(ae.getSource() == startgame)
+   {
+    int games = Integer.parseInt(gamebox.getSelectedItem().toString());
+    String username1 = player1.getText();
+    String username2 = player2.getText();
+    TictactoeFrame tframe = new TictactoeFrame(games,vscomp,username1,username2);
+    tframe.setVisible(true);
+    TictactoePrompter.this.dispose(); 
+   }
+   if(ae.getSource() == pp)
+   {
+    player2.setEditable(true);
+    player2.setText("");
+    vscomp = false;
+   }
+   if(ae.getSource() == cp)
+   {
+    player2.setEditable(false); 
+    player2.setText("(AI) Saeed");
+    vscomp = true;
+   }
+  } 
+ }
+}

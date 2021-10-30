@@ -1,0 +1,447 @@
+import javax.swing.JPanel;
+import java.awt.Graphics2D;
+import java.awt.Graphics;
+import java.awt.BasicStroke;
+import java.awt.Font;
+import java.util.Random;
+
+//Custom class designed to act as the component of a tictactoe panel
+//the whole tictactoe plus the effects if somebody wins is drawn on this panel
+//this also regulates a lot of stuff such as checking whether somebody won
+// or managing the grid itself
+public class TictactoeComponent extends JPanel
+{
+ //the dimensions of the tictactoe board, x*x 
+ private int dimensions; 
+ // this is the two dimensional array
+ // representation of a grid upon which one can mark, 
+ private XO[][] markedgrids;
+ // these are the row differences and column differences
+ // between the current cell and the cell that is being checked
+ private int rowdifference,coldifference;
+ // this is the current cell, the cell that has been most recently marked
+ private XO currentcell;
+ // the size of the cells, size * size = area of cell
+ private int size;
+ // frh = height of frame, frw = width of frame
+ private int frw,frh;
+ // this boolean variable checks if the program is complete or not 
+ private boolean done,done2;
+ // this final constant is to push the whole thing into the visible space of the frame
+ // only to move the x coordinates of everything that is drawn
+ private final int PUSH = 45;
+ private String username1,username2;
+ private int score1,score2;
+ private int games,gametemp;
+ //default constructor 
+ private int whosplayin;
+ private boolean draw;
+ public TictactoeComponent(int dimensions, int frameheight, int framewidth,String username1,String username2,int games)
+ {
+  //the game isn't complete because it has just begun so 
+  done = false;
+  done2 = false;
+  draw = false;
+  // initializing variables
+  frw = framewidth;
+  frh = frameheight;
+  this.username1 = username1;
+  this.username2 = username2;
+  this.games = games;
+  gametemp = games;
+  whosplayin = 2;
+  score1 = 0;
+  score2 = 0;
+  markedgrids = new XO[dimensions][dimensions];
+  //the set size for the whole panel is 400 units
+  //this determines how it will be split up between individual cells
+  this.size = 400/dimensions;
+  // just to avoid null pointer exception these are initalized in random fashion,
+  // actually this is the first cell that will be checked when comparing with current cell
+  
+  rowdifference = -1;
+  coldifference = -1;
+  //this nested for loop fills the grid
+  // with unmarked cells
+  for(int i = 0;i<dimensions;i++)
+  {
+   for(int x = 0; x<dimensions;x++) 
+   { 
+    markedgrids[x][i] = new XO(x,i,size,0);
+   }
+  }
+  this.dimensions = dimensions;
+ }
+ //paintcomponent method to draw the necessary stuff 
+ // two things here: the tictactoe grid, and the win features
+ public void paintComponent(Graphics g)
+ {
+  Graphics2D g2 = (Graphics2D) g;
+  //the tictactoe grid initialized and drawn
+  System.out.println("Dimensions: "+dimensions);
+  TictactoeGrid tttgrid = new TictactoeGrid(dimensions,markedgrids);
+  tttgrid.draw(g2);
+  Font current = g2.getFont();
+  if(whosplayin == 2)
+   g2.setFont(new Font("Courier", Font.BOLD,12)); 
+  g2.drawString(username1+": "+score1,PUSH+size*(dimensions+1),PUSH+(dimensions/2)*size-100);
+  g2.setFont(current);
+  if(whosplayin == 1)
+   g2.setFont(new Font("Courier", Font.BOLD,12));
+  g2.drawString(username2+": "+score2,PUSH+size*(dimensions+1),PUSH+(dimensions/2)*size-50);
+  g2.setFont(current);
+  int gameshow = gametemp-games+1;
+  g2.drawString("Current Game Number: "+gameshow, PUSH+size*(dimensions+1),PUSH+(dimensions/2)*size+100);
+  //checking and drawing the winning features
+  if(done2 || done || draw)
+  {
+   //the x2 coordinate is the x coordinate of the third cell that happens to be in the ending of the
+   // line you draw when you win, you get it ya,
+   // the y2 coordinate is the y coordinate of the same cell
+   // the math here is, if you move to a certain place, you have to do the same motion to get to the
+   // third cell which is the ending, if your second O is to the right of the first O, your third cell
+   // must right next to your second cell so you have to move right twice so you repeat your initial motion
+   // thus we must do double the previous motion
+    
+   int x1 = 0;
+   int x2 = 0;
+   int y1 = 0;
+   int y2 = 0;
+   int rd = 0;
+   int cd = 0;
+   if(done2)
+   {
+    rd = rowdifference*-1;
+    cd = coldifference*-1;
+    x1 = markedgrids[currentcell.getRow()+rowdifference][currentcell.getColumn()+
+    coldifference].getX();
+    y1 = markedgrids[currentcell.getRow()+rowdifference][currentcell.getColumn()+
+    coldifference].getY();                                         
+    System.out.println(currentcell.toString());
+    System.out.println("Starting coordinates: ("+x1+", "+y1+") size: "+size);
+    x2 = markedgrids[currentcell.getRow()+rd][currentcell.getColumn()+cd].getX();
+    y2 = markedgrids[currentcell.getRow()+rd][currentcell.getColumn()+cd].getY();
+    System.out.println("Ending coordinates: ("+x2+", "+y2+")");
+    g2.setStroke(new BasicStroke(5));
+    g2.drawLine(x1+size-20,y1+size-20,x2+size-20,y2+size-20); 
+   }
+   else if(done)
+   {
+    rd = rowdifference*2;
+    cd = coldifference*2;
+    x1 = currentcell.getX();
+    y1 = currentcell.getY();
+    System.out.println("Starting coordinates: ("+x1+", "+y1+")");
+    x2 = markedgrids[currentcell.getRow()+rd][currentcell.getColumn()+cd].getX();
+    y2 = markedgrids[currentcell.getRow()+rd][currentcell.getColumn()+cd].getY();
+    System.out.println("Ending coordinates: ("+x2+", "+y2+")");
+    g2.setStroke(new BasicStroke(5));
+    g2.drawLine(x1+size-20,y1+size-20,x2+size-20,y2+size-20); 
+   }
+                                                           
+   //string to indicate that the game is over
+   if(draw)
+   {
+    System.out.println("Draw !!!");
+    g2.drawString("Draw!!!",PUSH+size*(dimensions+1),PUSH+(dimensions/2)*size+150);
+   }
+   else
+   {
+    System.out.println("Game is Over!!!");
+    g2.drawString("Game is Done!",PUSH+size*(dimensions+1),PUSH+(dimensions/2)*size+150);
+   }
+  }
+ }
+ //custom method to reset the grid
+ //will be used by the "reset" button
+ public void resetGrid()
+ {
+  for(int i = 0;i<dimensions;i++)
+  {
+   for(int x = 0; x<dimensions;x++) 
+   {
+    //just recreates the whole grid 
+    markedgrids[x][i] = new XO(x,i,size,0);
+    //but all the locks are off(the lock to press again on the same cell)
+    markedgrids[x][i].setLock(false);
+   }  
+  }
+  //to make sure the winning features aren't drawn after being reset
+  done = false;
+  done2 = false;
+ }
+ //custom method to mark a certain cell based upon the
+ // position of the mouse when it clicks
+ public void setMark(int x, int y, int mark)
+ {
+  int row, column;
+// it just estimates the row based upon the coordinate
+// by reversing the calculation that was used for drawing the grid
+  int estimrow = (x-PUSH)/size;
+  int estimcol = (y-PUSH)/size;
+// if out of bounds:
+  if(estimrow > dimensions || estimcol > dimensions)
+  {
+   //set them to the initial cell 
+   estimrow = 0;
+   estimcol = 0;
+  }
+  //as this is the latest grid to be marked, it will be the current cell
+  currentcell = markedgrids[estimrow][estimcol];
+  // if it isn't locked, we must make sure it should be marked
+  if(!markedgrids[estimrow][estimcol].ifLocked())
+  {
+   whosplayin = mark; 
+   currentcell.setXO(mark);
+  }
+ }
+ public void setLock(boolean lock)
+ {
+  currentcell.setLock(lock);
+ }
+ public boolean ifLocked()
+ {
+  return currentcell.ifLocked(); 
+ }
+ public boolean checkIfDone()
+ {
+  int col = currentcell.getColumn();
+  int row = currentcell.getRow();
+  int startingrow = -1; 
+  int startingcol = -1;
+  int endingrow = 2;
+  int endingcol = 2;
+  
+  if(col == 0)
+   startingcol = 0;
+  if(row == 0)
+   startingrow = 0;
+  if(col == dimensions-1)
+   endingcol = 1; 
+  if(row == dimensions-1)
+   endingrow = 1;
+    
+  System.out.println("Start/end: "+startingrow+" "+startingcol+" "+endingrow+" "+endingcol);
+  done = false;
+  done2 = false;
+  int r = 0;
+  int c = 0;
+  int rtemp = row+startingrow;
+  int ctemp = col+startingcol;
+  while(c<col+endingcol && r<row+endingrow)
+  {
+   for(c = ctemp;c<col+endingcol;c++)
+   {
+    for(r = rtemp;r<row+endingrow;r++)
+    {
+     System.out.println(markedgrids[r][c].toString()+ " ");
+     if(r != row || c != col)
+     {
+      done = currentcell.compareCells(markedgrids[r][c]);
+      System.out.println("Done: "+done+" "+markedgrids[r][c].toString());
+     }
+     if(done)
+     { 
+      rowdifference = r-row;
+      coldifference = c-col;
+      done2 = true;
+      if(r < row+endingrow)
+      {
+       System.out.println("Aha!");
+       rtemp = r+1;
+       ctemp = c;
+      }
+      else if(c < col+endingcol)
+      {
+       System.out.println("Gotcha!");
+       ctemp = c+1;
+       rtemp = r-2;
+      }
+      break;
+     }
+    }
+    if(done)
+    {
+     break;
+    }
+    else
+    {
+     rtemp = startingrow+row;
+    }
+   }
+   int rd = rowdifference*2;
+   int cd = coldifference*2;
+   int rd2 = rowdifference*-1;
+   int cd2 = coldifference*-1;
+   //stage 2 check
+   if(done && (row+rd >= 0 && row+rd < dimensions) && (col+cd >= 0 && col+cd < dimensions))
+   {
+    done = currentcell.compareCells(markedgrids[row+rd][col+cd]);
+    if(done)
+    {
+     done2 = false;
+     return done;
+    }
+   }
+   else
+    done = false;
+   if(done2 && (row+rd2 >= 0 && row+rd2 < dimensions) && (col+cd2 >= 0 && col+cd2 < dimensions)) 
+   {
+   done2 = currentcell.compareCells(markedgrids[row+rd2][col+cd2]);
+   if(done2)
+    return done2;
+   }
+   else
+    done2 = false;
+  }
+  return done;
+ }
+
+ public void lockGrid()
+ {
+  for(int c = 0;c<dimensions;c++)
+  {
+   for(int r = 0; r<dimensions;r++) 
+   {
+    markedgrids[r][c].setLock(true);
+   }  
+  }
+ }
+ public void increaseScore(int player)
+ {
+  if(player == 1)
+   score2++;
+  else
+   score1++;
+ }
+ public String getWinText()
+ {
+  if(score1 == score2)
+  {
+   if(score1 == 4)
+    return "A Draw of huge importance, have a rematch because 4-4 Has to be settled!!";
+   else
+    return "Draw!!! A battle with equal footing!";
+  }
+  else if(score1>score2)
+   return username1+" Won!! Better luck next time "+username2+"!";  
+  else if(score2>score1)
+   return username2+" Won!! Better luck next time "+username1+"!"; 
+  else
+   return "No Data Present! Play more games!";
+ }
+ public String getScoreText()
+ {
+  return score1+" - "+score2; 
+ }
+ public void setGames(int games)
+ {
+  this.games = games; 
+ }
+ public void setComputerMark(int mark)
+ {
+  int row = currentcell.getRow();
+  int col = currentcell.getColumn();
+  //two scenarios:
+  //1) priority ***: If it detects available space around the latest cell that can lead to a win in one move, it will block that path
+  //2) priority *: If it detects available space around the latest cell that can possibly lead to a win in 2 moves, it will block that path
+  
+  //2)
+  int startingrow = -1;
+  int startingcol = -1;
+  int endingrow = 2;
+  int endingcol = 2;
+  
+  
+  
+  if(col == 0)
+   startingcol = 0;
+  if(row == 0)
+   startingrow = 0;
+  if(col == dimensions-1)
+   endingcol = 1; 
+  if(row == dimensions-1)
+   endingrow = 1;
+  
+  XO[] availableplaces = new XO[8];
+  XO[] enemyplaces = new XO[10];
+  int ahelpervar = 0;
+  int ehelpervar = 0;
+  for(int c = col+startingcol;c<col+endingcol;c++)
+  {
+   for(int r = row+startingrow;r<row+endingrow;r++)
+   {
+    if(r != row || c != col)
+    {
+     if(currentcell.compareCells(markedgrids[r][c]))
+     {      
+      int cd = 2*(c-col); 
+      int rd = 2*(r-row);
+      int cd2 = -1*(c-col); 
+      int rd2 = -1*(r-row);
+      System.out.println("Check 1");
+      if(cd+col < dimensions && cd+col >= 0 && rd+row < dimensions && rd+row >= 0 && !markedgrids[rd+row][cd+col].ifLocked())
+      {
+       enemyplaces[ehelpervar] = markedgrids[rd+row][cd+col];
+       ehelpervar++;
+      }
+      if(cd2+col < dimensions && cd2+col >= 0 && rd2+row < dimensions && rd2+row >= 0 && !markedgrids[rd2+row][cd2+col].ifLocked())
+      {
+       enemyplaces[ehelpervar] = markedgrids[rd2+row][cd2+col];
+       ehelpervar++;
+      }
+     }
+     else if(!markedgrids[r][c].ifLocked())
+     {
+      System.out.println("Check 2");
+      availableplaces[ahelpervar] = markedgrids[r][c]; 
+      ahelpervar++;
+     }
+    }
+   }
+  }
+  Random rng = new Random();
+  if(ehelpervar > 0)
+  {
+   System.out.println("Saeed: façaný aldým çocuk");
+   currentcell = enemyplaces[rng.nextInt(ehelpervar)]; 
+   whosplayin = mark;
+   currentcell.setXO(mark);
+  }
+  else if(ahelpervar > 0)
+  {
+   System.out.println("Saeed: bi fikrim var çok iddalý deðilim");
+   currentcell = availableplaces[rng.nextInt(ahelpervar)]; 
+   whosplayin = mark;
+   currentcell.setXO(mark);
+  }
+  else
+  {
+   System.out.println("Saeed: sallýyorum þu an"); 
+   XO[] randompick = new XO[dimensions*dimensions];
+   int rnghelpervar = 0;
+   for(int c = 0; c< dimensions;c++)
+   {
+    for(int r = 0; r<dimensions;r++)
+    {
+     if(!markedgrids[r][c].ifLocked())
+     {
+      randompick[rnghelpervar] = markedgrids[r][c]; 
+      rnghelpervar++;
+     }   
+    }
+   }
+   currentcell = randompick[rng.nextInt(rnghelpervar)];
+   whosplayin = mark;
+   currentcell.setXO(mark);
+  } 
+ }
+ public void setPlayer(int player)
+ {
+  whosplayin = player; 
+ }
+ public void setDraw(boolean draw)
+ {
+  this.draw = draw; 
+ }
+}

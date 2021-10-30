@@ -1,0 +1,240 @@
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.Font;
+
+//Custom class to use as the TictactoeFrame
+// will only be used to put on the panel, the buttons and the text field
+// doesn't affect other things, only uses methods of other classes and
+// sends the initial input 
+public class TictactoeFrame extends JFrame
+{
+ //tttcomp is the component to be drawn 
+ private TictactoeComponent tttcomp;
+ private JFrame victoryscreen;
+ private JButton reset,nextgame,exit,endearly,newgame;
+ //text that the dimension will be written on
+ private JTextField dimensiontxt;
+ // size of frame  
+ private final int JFRAMESIZE = 600;
+ // this basically represents the marker
+ // that draws upon the grid,
+ // when it is 1 it draws an X
+ // when it is 2 it draws an O
+ // when it is anything else it doesn't draw anything
+ private int xomarker = 1;
+  private int games;
+ private boolean vscomp;
+ private int round;
+ private String username1,username2;
+ public TictactoeFrame(int games, boolean vscomp,String username1,String username2)
+ {
+  this.games = games;
+  this.vscomp = vscomp;
+  this.username1 = username1;
+  this.username2 = username2;
+  round = 1;
+  //initializing frame properties
+  this.setTitle("Tic Tac Toee");
+  this.setSize(JFRAMESIZE+200,JFRAMESIZE);
+  this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+  tttcomp = new TictactoeComponent(3,this.getHeight(),this.getWidth(),username1,username2,games);
+
+  
+  
+  this.add(tttcomp, BorderLayout.CENTER);
+  tttcomp.addMouseListener(new TttListener());
+  
+  //initializing buttons, panels and adding listeners
+  newgame = new JButton("New Game");
+  
+  reset = new JButton("Reset Game");
+  exit = new JButton("Exit Game");
+  endearly = new JButton("End The Match Early");
+  nextgame = new JButton("Next Game");
+  reset.addActionListener(new ButtonListener());
+  exit.addActionListener(new ButtonListener());
+  endearly.addActionListener(new ButtonListener());
+  nextgame.addActionListener(new ButtonListener());
+  newgame.addActionListener(new ButtonListener());
+  nextgame.setEnabled(false);
+  
+  //the centerpan is the panel with all the buttons
+  // the rest of the stuff is drawn on top of the frame itself
+  JPanel centerpan = new JPanel();
+  centerpan.setLayout(new GridLayout(1,4));
+  centerpan.add(reset);
+  centerpan.add(nextgame);
+  centerpan.add(endearly);
+  centerpan.add(exit);
+  this.add(centerpan, BorderLayout.SOUTH);
+ }
+ 
+ //custom listener class for the mouse
+ // the only necessary method was mouse clicked but I had to implement the other
+ // ones as well as they are abstract
+ class TttListener implements MouseListener
+ {
+  public void mouseClicked(MouseEvent e)
+  {
+   System.out.print("Rounds: ");
+   System.out.println(round+1);
+   boolean compmove = false;
+   //gets the x and y coordinates of the mouse click 
+   int x = e.getX();
+   int y = e.getY();
+   System.out.println("Pressed coordinates: ("+x+","+y+")");
+   //feeds them to the marker method and what to be drawn
+   tttcomp.setMark(x,y,xomarker); 
+   // if it isn't locked and we have drawn an X
+    if(xomarker == 1 && !tttcomp.ifLocked())
+   {
+    // next time the marker will draw an O  
+    xomarker = 2;
+    // and we must repaint now 
+    TictactoeFrame.this.repaint();
+    round++;
+    compmove = true;
+   }
+    //if it isn't locked and we have drawn an O 
+   else if(!tttcomp.ifLocked())
+   {
+    //set the marker to draw an X next time 
+    xomarker = 1;
+    TictactoeFrame.this.repaint();
+    round++;
+    compmove = true;
+   }
+   //checks the comp if it is done
+   if(tttcomp.checkIfDone() || round > 9)
+   {
+    //the grid is locked  
+    tttcomp.lockGrid();
+    nextgame.setEnabled(true);
+    if(round > 9)
+    {
+     tttcomp.setDraw(true); 
+    }
+   }
+   TictactoeFrame.this.repaint();
+   if(compmove && vscomp && !tttcomp.checkIfDone())
+   {
+    round++;
+    if(round <= 9 && !tttcomp.checkIfDone())
+    {
+     tttcomp.setComputerMark(xomarker);
+     if(xomarker == 1)
+      xomarker = 2;
+     else 
+      xomarker = 1;
+    }
+    if(tttcomp.checkIfDone() || round > 9)
+   {
+    //the grid is locked  
+    tttcomp.lockGrid();
+    nextgame.setEnabled(true);
+    if(round > 9)
+    {
+     tttcomp.setDraw(true); 
+    }
+   }
+    TictactoeFrame.this.repaint();
+   }
+  }
+  public void mouseEntered(MouseEvent e)  
+  {}
+  public void mouseExited(MouseEvent e)
+  {}
+  public void mousePressed(MouseEvent e)
+  {}
+  public void mouseReleased(MouseEvent e)
+  {}
+ }
+ class ButtonListener implements ActionListener
+ {
+  public void actionPerformed(ActionEvent ae)
+  {
+   if(ae.getSource() == exit) 
+   {
+    System.exit(0);
+   } 
+   if(ae.getSource() == reset)
+   {
+    tttcomp.resetGrid();
+    TictactoeFrame.this.repaint();
+    round = 1;
+    if(vscomp)
+    {
+     xomarker = 1; 
+     tttcomp.setPlayer(xomarker);
+    }
+    tttcomp.setDraw(false);
+   }
+   if(ae.getSource() == nextgame && games > 0)
+   {
+    if(round > 9 && !tttcomp.checkIfDone())
+    {
+     System.out.println("definitely a draw");
+    }
+    else
+    {
+     tttcomp.increaseScore(xomarker); 
+    }
+    if(vscomp)
+    {
+     xomarker = 1;
+     tttcomp.setPlayer(xomarker);
+    }
+    tttcomp.resetGrid();
+    round = 1;
+    games--;
+    tttcomp.setGames(games);
+    tttcomp.setDraw(false);
+    TictactoeFrame.this.repaint();
+    
+   }
+   if(ae.getSource() == endearly || (ae.getSource() == nextgame && games <= 0))
+   {
+    String wintext = tttcomp.getWinText();
+    String scoretext = tttcomp.getScoreText();
+    System.out.println(wintext);
+    victoryscreen = new JFrame("Victory Screen");
+    victoryscreen.setSize(300,300);
+    victoryscreen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    victoryscreen.setLayout(new GridLayout(3,1));
+    JPanel buttonpan = new JPanel();
+    JLabel winlabel = new JLabel(wintext);
+    JLabel scorelabel = new JLabel(scoretext);
+    winlabel.setHorizontalAlignment(JLabel.CENTER);
+    scorelabel.setHorizontalAlignment(JLabel.CENTER);
+    Font winfont = new Font("Courier", Font.BOLD,35);
+    scorelabel.setFont(winfont);
+    exit = new JButton("Exit");
+    newgame = new JButton("New Game");
+    newgame.addActionListener(this);
+    exit.addActionListener(this);
+    buttonpan.add(exit);
+    buttonpan.add(newgame);
+    victoryscreen.add(winlabel);
+    victoryscreen.add(scorelabel);
+    victoryscreen.add(buttonpan);
+    victoryscreen.setVisible(true);
+    TictactoeFrame.this.dispose();
+   }
+   if(ae.getSource() == newgame)
+   {
+    TictactoePrompter tprompt = new TictactoePrompter();
+    tprompt.setVisible(true);
+    victoryscreen.dispose();
+   }
+  }
+ }
+}

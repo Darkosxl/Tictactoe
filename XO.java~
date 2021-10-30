@@ -1,0 +1,88 @@
+import java.awt.geom.Line2D;
+import java.awt.Graphics2D;
+import java.awt.Color;
+
+public class XO
+{
+ private int row,column,size,cellholder;
+ private int x,y;
+ private boolean celllock;
+ private int PUSH = 45;
+ public XO(int row,int column,int size,int cellholder)
+ {
+  this.row = row;
+  x = row*size+PUSH;
+  y = column*size+PUSH;
+  this.column = column;
+  this.size = size;
+  this.cellholder = cellholder;
+  celllock = false;
+ }
+ public void draw(Graphics2D g2)
+ {
+  //System.out.println("setting the cell: "+cellholder); 
+  //int estimxpos = x-PUSH-size/4
+  int x1 = this.x+size/4;
+  int y1 = this.y+size/4;
+  //if there must be an X drawn in the cell  
+  if(cellholder == 1)
+  {
+   Line2D yx1 = new Line2D.Double(x1,y1,x1+size/2,y1+size/2);
+   Line2D yx2 = new Line2D.Double(x1+size/2,y1,x1,y1+size/2);
+   g2.draw(yx1);
+   g2.draw(yx2);
+   celllock = true;
+  } 
+   //if there must be an O drawn in the cell  
+  if(cellholder == 2)
+  {
+   x1 = size/8+this.x;
+   y1 = size/8+this.y; 
+   g2.drawOval(x1,y1,size*3/4,size*3/4);
+   celllock = true;
+  }
+ }
+ public void setXO(int xo)
+ {
+  cellholder = xo;
+ }
+ public void setLock(boolean lock)
+ {
+  celllock = lock;
+ }
+ public int getX()
+ {
+  return size*row;
+ }
+ public int getRow()
+ {
+  return row; 
+ }
+ public int getColumn()
+ {
+  return column; 
+ }
+ public int getY()
+ {
+  return size*column;
+ }
+ public boolean compareCells(XO next)
+ {
+  if(this.cellholder == next.getMark())
+   return true;
+  else 
+   return false;
+ }
+ private int getMark()
+ {
+  return cellholder; 
+ }
+ public boolean ifLocked()
+ {
+  return celllock;
+ }
+ public String toString()
+ {
+  return "("+row+","+column+")";
+ }
+}
